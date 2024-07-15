@@ -16,10 +16,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation";
 import * as z from 'zod';
 import { ChangeEvent, useState } from 'react';
 import { isBase64Image } from '@/lib/utils';
 import { useUploadThing } from '@/lib/uploadthing';
+import { updateUser } from '@/lib/actions/user.actions';
 
 interface Props {
     user: {
@@ -34,6 +36,8 @@ interface Props {
 }
 
 const AccountProfile = ({user, btnTitle}: Props) => {
+    const router = useRouter();
+    const pathname = usePathname();
     const [files, setFiles] = useState<File[]>([]);
     const { startUpload } = useUploadThing('media');
 
@@ -75,6 +79,20 @@ const AccountProfile = ({user, btnTitle}: Props) => {
             if (imgRes && imgRes[0].fileUrl) {
                 values.profile_photo = imgRes[0].fileUrl;
               }
+        }
+        await updateUser({
+            name: values.name,
+            path: pathname,
+            username: values.username,
+            userId: user.id,
+            bio: values.bio,
+            image: values.profile_photo,
+        });
+
+        if (pathname === "/profile/edit") {
+            router.back();
+        } else {
+            router.push("/");
         }
     }
 
